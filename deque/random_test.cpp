@@ -349,26 +349,23 @@ namespace {
 
     TEST(Random, Exception) {
         sjtu::deque<int> deq, deq2;
-        int ct = 0;
 
-        try { deq.front(); } catch (...) { ct++; }
-        try { deq.back(); } catch (...) { ct++; }
-        try { deq[0]; } catch (...) { ct++; }
+        EXPECT_ANY_THROW(deq.front());
+        EXPECT_ANY_THROW(deq.back());
+        EXPECT_ANY_THROW(deq[0]);
 
         deq.push_back(1);
         deq.push_back(2);
         deq2.push_back(1);
         deq2.push_back(2);
 
-        try { deq.end() - deq.begin(); } catch (...) { ct--; }
-        try { deq2.end() - deq.begin(); } catch (...) { ct++; }
+        EXPECT_NO_THROW(deq.end() - deq.begin());
+        EXPECT_ANY_THROW(deq2.end() - deq.begin());
 
-        try { deq2[-1]; } catch (...) { ct++; }
-        try { deq2[2]; } catch (...) { ct++; }
-        try { deq2.at(-1); } catch (...) { ct++; }
-        try { deq2.at(1); } catch (...) { ct--; }
-
-        EXPECT_EQ(ct, 7);
+        EXPECT_ANY_THROW(deq2[-1]);
+        EXPECT_ANY_THROW(deq2[2]);
+        EXPECT_ANY_THROW(deq2.at(-1));
+        EXPECT_NO_THROW(deq2.at(1));
     }
 
     template<typename T>
