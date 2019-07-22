@@ -14,6 +14,7 @@
 #include "mocks/Bint.h"
 #include "mocks/Integer.h"
 #include "mocks/Matrix.hpp"
+#include "mocks/DynamicType.h"
 #include "utility.hpp"
 #include "exceptions.hpp"
 
@@ -252,38 +253,6 @@ namespace {
     }
 
     int ansCounter = 0, myCounter = 0, noUseCounter = 0;
-
-// you should construct and deconstruct this class correctly
-    class DynamicType {
-    public:
-        int *pct;
-        double *data;
-
-        DynamicType(int *p) : pct(p), data(new double[2]) {
-            (*pct)++;
-        }
-
-        DynamicType(const DynamicType &other) : pct(other.pct), data(new double[2]) {
-            (*pct)++;
-        }
-
-        DynamicType &operator=(const DynamicType &other) {
-            if (this == &other) return *this;
-            (*pct)--;
-            pct = other.pct;
-            (*pct)++;
-            delete[] data;
-            data = new double[2];
-            return *this;
-        }
-
-        ~DynamicType() {
-            delete[] data;
-            (*pct)--;
-        }
-
-        bool operator==(const DynamicType &rhs) const { return true; }
-    };
 
     TEST(Random, CopyAndClear) {
         // you should call the constructor and deconstructor correctly
