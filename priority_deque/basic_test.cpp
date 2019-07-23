@@ -4,6 +4,7 @@
 
 #include <gtest/gtest.h>
 
+#include <queue>
 #include "priority_queue.hpp"
 
 
@@ -55,49 +56,62 @@ namespace {
      * These tests are originally test data four
      * which contain the following credit message:
      * > provided by 徐植天
+     * And here I modified all tests to compare with
+     * std::priority_queue
     */
 
-    void TestConstructorAndPush() {
-        std::cout << "Testing constructors, destructor and push..." << std::endl;
+    TEST(Std, ConstructorAndPush) {
         sjtu::priority_queue<int> q;
+        std::priority_queue<int> q_;
         int up = 600;
         for (int i = 0; i < up; i++) {
             q.push(i);
+            q_.push(i);
         }
         for (int i = 0; i < up / 2; i++) {
-            std::cout << q.top() << " ";
+            EXPECT_EQ(q.top(), q_.top());
             q.pop();
+            q_.pop();
         }
-        std::cout << std::endl;
-        std::cout << q.size() << std::endl;
+        EXPECT_EQ(q.size(), q_.size());
         sjtu::priority_queue<int> nq(q);
-        std::cout << nq.size() << std::endl;
+        std::priority_queue<int> nq_(q_);
+        EXPECT_EQ(nq.size(), nq_.size());
         for (int i = up * 2; i < up * 2 + 10; i++) {
             nq.push(i);
+            nq_.push(i);
         }
-        std::cout << nq.size() << std::endl;
+        EXPECT_EQ(nq_.size(), nq.size());
         for (int i = 0; i < 5; i++) {
-            std::cout << nq.top() << " ";
+            EXPECT_EQ(nq_.top(), nq.top());
             nq.pop();
+            nq_.pop();
         }
-        std::cout << std::endl;
         nq = q;
-        std::cout << nq.size() << std::endl;
+        nq_ = q_;
+        EXPECT_EQ(nq_.size(), nq.size());
     }
 
-    void TestSize() {
-        std::cout << "Testing size()" << std::endl;
+    TEST(Std, Size) {
         sjtu::priority_queue<int> q, q2;
+        std::priority_queue<int> q_, q2_;
         while (!q.empty()) q.pop();
-        for (int i = 0; i < 100; i++) q.push(i);
+        for (int i = 0; i < 100; i++) {
+            q.push(i);
+            q_.push(i);
+        }
         q2 = q;
+        q2_ = q_;
         q2.push(101), q2.push(102);
-        std::cout << q.size() << " " << q2.size() << std::endl;
+        q2_.push(101), q2_.push(102);
+        EXPECT_EQ(q.size(), q_.size());
+        EXPECT_EQ(q2.size(), q2_.size());
         q2 = q2;
-        std::cout << q2.size() << std::endl;
+        q2_ = q2_;
+        EXPECT_EQ(q2.size(), q2_.size());
     }
 
-    void TestException() {
+    TEST(Std, Exception) {
         std::cout << "Testing Exception" << std::endl;
         sjtu::priority_queue<int> q, q2;
         while (!q.empty()) q.pop();
@@ -105,19 +119,8 @@ namespace {
         q2 = q;
         for (int i = 0; i < 100; i++) q2.pop();
         int s = 0;
-        try {
-            q2.pop();
-        } catch (...) {
-            ++s;
-        }
-        try {
-            std::cout << q2.top() << std::endl;
-        } catch (...) {
-            ++s;
-        }
-        if (s == 2) {
-            std::cout << "Throw correctly" << std::endl;
-        }
+        EXPECT_ANY_THROW(q2.pop());
+        EXPECT_ANY_THROW(q2.top());
     }
 
     struct guest {
@@ -147,67 +150,80 @@ namespace {
         return a.x < b.x || (a.x == b.x && a.y < b.y);
     }
 
-    void Testguest_sp(sjtu::priority_queue <guest> tmp) {
+    void test_guest_helper(sjtu::priority_queue<guest> tmp, std::priority_queue<guest> tmp_) {
         for (int i = 90; i < 95; i++) {
             int x = i / 10;
             int y = i % 10;
             tmp.push(guest(x, y));
+            tmp_.push(guest(x, y));
         }
-        std::cout << tmp.size() << " " << tmp.top().getvalue() << std::endl;
+        EXPECT_EQ(tmp.size(), tmp_.size());
+        EXPECT_EQ(tmp.top().getvalue(), tmp_.top().getvalue());
     }
 
-    void Testguest() {
-        std::cout << "Testing guest" << std::endl;
-        sjtu::priority_queue <guest> q, q2;
+    TEST(Std, Guest) {
+        sjtu::priority_queue<guest> q, q2;
+        std::priority_queue<guest> q_, q2_;
         while (!q.empty()) q.pop();
         for (int i = 0; i < 100; i++) {
             int x = i / 10;
             int y = i % 10;
             q.push(guest(x, y));
+            q_.push(guest(x, y));
         }
-        std::cout << q.size() << std::endl;
+        EXPECT_EQ(q.size(), q_.size());
         q2 = q;
-        for (int i = 0; i < 10; i++) q2.pop();
-        std::cout << q2.size() << " " << q2.top().getvalue() << std::endl;
-        Testguest_sp(q2);
-        std::cout << q2.size() << " " << q2.top().getvalue() << std::endl;
+        q2_=q_;
+        for (int i = 0; i < 10; i++) {
+            q2.pop();
+            q2_.pop();
+        }
+        EXPECT_EQ(q2.size(), q2_.size());
+        EXPECT_EQ(q2.top().getvalue(), q2_.top().getvalue());
+        test_guest_helper(q2, q2_);
+        EXPECT_EQ(q2.size(), q2_.size());
+        EXPECT_EQ(q2.top().getvalue(), q2_.top().getvalue());
     }
 
-    void Testsamecopy() {
-        std::cout << "Testing samecopy" << std::endl;
-        sjtu::priority_queue <guest> q;
+    TEST(Std, SameCopy) {
+        sjtu::priority_queue<guest> q;
+        std::priority_queue<guest> q_;
         for (int i = 0; i < 50; i++) {
             int x = i * 2 / 10;
             int y = i * 2 % 10;
             q.push(guest(x, y));
+            q_.push(guest(x, y));
         }
-        std::cout << q.size() << std::endl;
+        EXPECT_EQ(q.size(), q_.size());
         for (int i = 0; i < q.size(); i++) {
-            std::cout << q.top().getvalue() << " ";
+            EXPECT_EQ(q.top().getvalue(), q_.top().getvalue());
         }
-        std::cout << std::endl;
         q = q;
-        for (int i = 0; i < 10; i++) q.pop();
-        std::cout << q.size() << std::endl;
-        for (int i = 0; i < q.size(); i++) {
-            std::cout << q.top().getvalue() << " ";
+        q_ = q_;
+        for (int i = 0; i < 10; i++) {
+            q.pop();
+            q_.pop();
         }
-        std::cout << std::endl;
+        EXPECT_EQ(q.size(), q_.size());
+        for (int i = 0; i < q.size(); i++) {
+            EXPECT_EQ(q.top().getvalue(), q_.top().getvalue());
+        }
     }
 
-    void Testsort() {
-        std::cout << "Testing sort" << std::endl;
-        sjtu::priority_queue <guest> q;
+    TEST(Std, Sort) {
+        sjtu::priority_queue<guest> q;
+        std::priority_queue<guest> q_;
         for (int i = 0; i < 50; i++) {
             int x = i / 10;
             int y = i % 10;
             q.push(guest(x, y));
+            q_.push(guest(x, y));
         }
         for (int i = 0; i < 50; i++) {
-            std::cout << q.top().getvalue() << " ";
+            EXPECT_EQ(q.top().getvalue(), q_.top().getvalue());
             q.pop();
+            q_.pop();
         }
-        std::cout << std::endl;
     }
 
     struct binary {
@@ -233,6 +249,7 @@ namespace {
         binary &operator=(const binary &other) {
             len = other.len;
             for (int i = 0; i < len; i++) number[i] = other.number[i];
+            return *this;
         }
     };
 
@@ -245,9 +262,9 @@ namespace {
         return false;
     }
 
-    void Testextra() {
-        std::cout << "Testing extra" << std::endl;
-        sjtu::priority_queue <binary> q;
+    TEST(Std, Extra) {
+        sjtu::priority_queue<binary> q;
+        std::priority_queue<binary> q_;
         int e[10];
         for (int i = 1; i < 1000; i++) {
             int len = 0, t = i;
@@ -261,11 +278,12 @@ namespace {
                 e[len - 1 - j] = tmp;
             }
             q.push(binary(e, len));
+            q_.push(binary(e, len));
         }
         for (int i = 1; i < 1000; i++) {
-            std::cout << q.top().getexpression() << " ";
+            EXPECT_EQ(q.top().getexpression(), q_.top().getexpression());
             q.pop();
+            q_.pop();
         }
-        std::cout << std::endl;
     }
 }
