@@ -173,7 +173,7 @@ namespace {
         }
         EXPECT_EQ(q.size(), q_.size());
         q2 = q;
-        q2_=q_;
+        q2_ = q_;
         for (int i = 0; i < 10; i++) {
             q2.pop();
             q2_.pop();
@@ -284,6 +284,239 @@ namespace {
             EXPECT_EQ(q.top().getexpression(), q_.top().getexpression());
             q.pop();
             q_.pop();
+        }
+    }
+}
+
+namespace {
+    /**
+     * These tests are originally test data two
+     * which contain the following credit message:
+     * > provided by 林伟鸿
+     * And here I modified all tests to compare with
+     * std::priority_queue
+    */
+    int A = 325, B = 2336, last = 233, mod = 1000007;
+
+    int Rand() {
+        return last = (A * last + B) % mod;
+    }
+
+    //测试 push 以及 top 访问
+    TEST(Simple, Push) {
+        sjtu::priority_queue<int> Q;
+        std::priority_queue<int> q;
+        for (int i = 1; i <= 5000; i++) {
+            int x = Rand();
+            Q.push(x);
+            q.push(x);
+            EXPECT_EQ(Q.top(), q.top());
+        }
+    }
+
+    //测试 pop 以及 top 访问
+    TEST(Simple, Pop) {
+        sjtu::priority_queue<int> Q;
+        std::priority_queue<int> q;
+        for (int i = 1; i <= 5000; i++) {
+            int x = Rand();
+            Q.push(x);
+            q.push(x);
+        }
+        EXPECT_EQ(q.size(), Q.size());
+        while (!Q.empty()) {
+            EXPECT_EQ(Q.top(), q.top());
+            q.pop();
+            Q.pop();
+        }
+    }
+
+    //测试 push pop 同时操作
+    TEST(Simple, PushAndPop) {
+        sjtu::priority_queue<int> Q;
+        std::priority_queue<int> q;
+        int size = 0;
+        for (int i = 1; i <= 6000; i++) {
+            if (!size) {
+                int x = Rand();
+                Q.push(x);
+                q.push(x);
+                size++;
+            } else {
+                int p = Rand() % 2;
+                if (!p) {
+                    Q.pop();
+                    q.pop();
+                    size--;
+                } else {
+                    int x = Rand();
+                    Q.push(x);
+                    q.push(x);
+                    size++;
+                }
+            }
+            if (size) {
+                EXPECT_EQ(q.top(), Q.top());
+            }
+        }
+    }
+
+    //测试拷贝构造
+    TEST(Simple, CopyConstructor) {
+        sjtu::priority_queue<int> Q;
+        std::priority_queue<int> q;
+        for (int i = 1; i <= 5000; i++) {
+            int x = Rand();
+            Q.push(x);
+            q.push(x);
+        }
+        sjtu::priority_queue<int> Q2(Q);
+        std::priority_queue<int> q2(q);
+        EXPECT_EQ(Q2.size(), q2.size());
+        while (!Q2.empty()) {
+            EXPECT_EQ(Q2.top(), q2.top());
+            Q2.pop();
+            q2.pop();
+        }
+    }
+
+    TEST(Simple, EqualOperator) {//测试"="
+        sjtu::priority_queue<int> Q;
+        std::priority_queue<int> q;
+        for (int i = 1; i <= 5000; i++) {
+            int x = Rand();
+            Q.push(x);
+            q.push(x);
+        }
+        sjtu::priority_queue<int> Q2;
+        std::priority_queue<int> q2;
+        Q2 = Q;
+        q2 = q;
+        EXPECT_EQ(Q2.size(), q2.size());
+        while (!Q2.empty()) {
+            EXPECT_EQ(Q2.top(), q2.top());
+            Q2.pop();
+            q2.pop();
+        }
+    }
+
+    //测试堆为空时top是否报错
+    TEST(Simple, TopThrow) {
+        sjtu::priority_queue<int> Q;
+        for (int i = 1; i <= 100; i++) Q.push(Rand());
+        EXPECT_ANY_THROW({
+                             while (!Q.empty()) {
+                                 Q.pop();
+                             }
+                             Q.top();
+                         });
+    }
+
+    //测试堆为空时pop是否报错
+    TEST(Simple, PopThrow) {
+        sjtu::priority_queue<int> Q;
+        for (int i = 1; i <= 100; i++) Q.push(Rand());
+        EXPECT_ANY_THROW({
+                             while (!Q.empty()) {
+                                 Q.pop();
+                             }
+                             Q.pop();
+                         });
+    }
+
+    //check8用于测试拷贝构造时是否在复制之前new出新的堆，若堆在pop是回收节点内存，那么会出现第二次回收时崩溃
+    TEST(Simple, CopyConstructorMemory) {
+        sjtu::priority_queue<int> Q;
+        for (int i = 1; i <= 30000; i++) {
+            Q.push(Rand());
+        }
+        sjtu::priority_queue<int> Q2(Q);
+        while (!Q.empty()) {
+            Q.pop();
+        }
+        while (!Q2.empty()) {
+            Q2.pop();
+        }
+    }
+
+    //check9与check8同理，测试的是"="操作执行是是否new出新节点
+    TEST(Simple, EqualOperatorMemory) {
+        sjtu::priority_queue<int> Q;
+        for (int i = 1; i <= 30000; i++) {
+            Q.push(Rand());
+        }
+        sjtu::priority_queue<int> Q2;
+        Q2 = Q;
+        while (!Q.empty()) {
+            Q.pop();
+        }
+        while (!Q2.empty()) {
+            Q2.pop();
+        }
+    }
+
+    struct intnum {
+        int num;
+
+        intnum(int p = 0) : num(p) {}
+
+        bool operator<(const intnum &b) const {
+            return num < b.num;
+        }
+    };
+
+    //考察传到自己的类是否能正常工作
+    TEST(Simple, ForeignClass) {
+        sjtu::priority_queue<intnum> Q;
+        std::priority_queue<intnum> q;
+        int size = 0;
+        for (int i = 1; i <= 3000; i++) {
+            if (!size) {
+                int x = Rand();
+                Q.push(intnum(x));
+                q.push(intnum(x));
+                size++;
+            } else {
+                int p = Rand() % 2;
+                if (!p) {
+                    Q.pop();
+                    q.pop();
+                    size--;
+                } else {
+                    int x = Rand();
+                    Q.push(intnum(x));
+                    q.push(intnum(x));
+                    size++;
+                }
+            }
+            if (size) {
+                EXPECT_EQ(Q.top().num, q.top().num);
+            }
+        }
+        printf("\n");
+    }
+
+
+
+    //check11 为 CE test 将注释代码进行编译，如果没有 CE 则通过该测试点
+
+    struct node {
+        int num;
+
+        node(int p) : num(p) {}
+
+        bool operator<(const node &b) const {
+            return num < b.num;
+        }
+    };
+
+    TEST(Simple, ShouldCompile) {
+        sjtu::priority_queue<node> Q;
+        for (int i = 1; i <= 30000; i++)
+            Q.push(node(Rand()));
+        while (!Q.empty()) {
+            Q.top();
+            Q.pop();
         }
     }
 }
