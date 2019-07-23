@@ -8,7 +8,7 @@ find_package(benchmark CONFIG REQUIRED)
 
 include_directories(${GTEST_INCLUDE_DIRS})
 
-add_executable(PriorityDequeTest test_main.cpp basic_test.cpp merge_test.cpp)
+add_executable(PriorityDequeTest test_main.cpp basic_test.cpp merge_test.cpp foreign_type_test.cpp)
 # add_executable(PriorityDequeTestBench test_bench.cpp)
 # add_executable(PriorityDequeBench bench_main.cpp)
 
